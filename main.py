@@ -282,13 +282,22 @@ do_check_thread.start()
 
 
 root = Tk()
+root.rowconfigure(0, weight=1)
+root.columnconfigure(0, weight=1)
+
 frm = ttk.Frame(root, padding=100)
-frm.grid()
+frm.grid(sticky=tkinter.NSEW)
+
 label_text = tkinter.StringVar(value="启动中...")
-label = ttk.Label(frm, textvariable=label_text).grid(column=0, row=0)
+label = ttk.Label(frm, textvariable=label_text, anchor=tkinter.CENTER).grid(
+    column=0, row=0, sticky=tkinter.NSEW)
 
 
-ttk.Button(frm, text="Quit", command=root.destroy).grid(column=0, row=1)
+for i in range(1):
+    frm.rowconfigure(i, weight=1)
+
+for i in range(1):
+    frm.columnconfigure(i, weight=1)
 
 
 root.mainloop()

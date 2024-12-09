@@ -14,7 +14,7 @@ jobs:
           python-version: "3.10"
       - run: pip install -r requirements.txt
       - run: pip install pyinstaller
-      - run: pyinstaller --noconsole main.py
+      - run: pyinstaller main.py
       - run: move platform-tools/ dist/main/_internal/
       - uses: actions/upload-artifact@v3
         with:

@@ -41,7 +41,7 @@ TOAST = ToastNotifier()
 
 
 def show_toast(title: str, msg: str):
-    TOAST.show_toast(title, msg, duration=10, threaded=True)
+    TOAST.show_toast(title, msg, duration=10, threaded=True, icon_path='')
 
 
 def find_emulators():

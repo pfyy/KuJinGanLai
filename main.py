@@ -299,9 +299,12 @@ for i in range(1):
 for i in range(1):
     frm.columnconfigure(i, weight=1)
 
+try:
+    root.mainloop()
+except KeyboardInterrupt:
+    pass
 
-root.mainloop()
-
+label_text = None
 
 running = False
 

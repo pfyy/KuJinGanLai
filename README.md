@@ -10,3 +10,15 @@
 2. `pip install -r requirements.txt`; 执行`main.py` (或者执行github action生成的二进制main.exe)
 
 3. 在游戏运行过程中, 保持本工具的开启. 本工具将自动周期获取模拟器的内存使用情况. 当内存不足时, 本工具使用windows的通知给出警告.
+
+
+## 截图
+
+![mumu](mumu.png)
+
+![ld](ld.png)
+
+警告示意图 (实际警戒线为 300 MiB):
+
+![didudidu](didudidu.png)
+

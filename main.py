@@ -18,11 +18,22 @@ ADB = os.path.join(
     ), "platform-tools", "adb.exe"
 )
 
+if not os.path.isfile(ADB):
+    print("warning, adb.exe not found, try to use adb.exe in system path")
+    ADB = "adb.exe"
+
 
 PACKAGE_NAMES = [
     "com.hypergryph.arknights",
     "com.hypergryph.arknights.bilibili"
 ]
+
+MI = 1024**2
+
+EMU_MEM_THRESH = 300 * MI
+
+X86_REM_VSS_THRESH = 300 * MI
+
 
 TOAST = ToastNotifier()
 
@@ -185,8 +196,7 @@ def do_check(target_device_id):
 
         msgs = []
 
-        MI = 1024**2
-        if emulator_mem is not None and (DEBUG or emulator_mem < 300*MI):
+        if emulator_mem is not None and (DEBUG or emulator_mem < EMU_MEM_THRESH):
             msgs.append(
                 f"模拟器当前剩余物理内存为 {emulator_mem/MI:.0f} MiB"
             )
@@ -200,16 +210,23 @@ def do_check(target_device_id):
 
             MAX_X86_VSS = 4096 * MI
 
+            if vss is not None:
+                x86_remaining_vss = MAX_X86_VSS - vss
+
+            if abi == "x86":
+                status_text += f"警告: {package_name}正在使用32位x86架构, 最大虚拟内存为4GiB\n"
+
             if (
                 abi == "x86" and vss is not None and
-                (DEBUG or MAX_X86_VSS - vss < 300*MI)
+                (DEBUG or x86_remaining_vss < X86_REM_VSS_THRESH)
             ):
                 msgs.append(
-                    f"游戏进程当前剩余虚拟内存为 {(MAX_X86_VSS - vss)/MI:.0f} MiB"
+                    f"游戏进程当前剩余虚拟内存为 {x86_remaining_vss/MI:.0f} MiB"
                 )
 
             if abi == "x86" and vss is not None:
-                status_text += f"{package_name} 剩余虚拟内存: {(MAX_X86_VSS - vss)/MI:.0f} MiB\n"
+                status_text += f"{package_name} 剩余虚拟内存: {
+                    x86_remaining_vss/MI:.0f} MiB\n"
         if msgs:
             msg = '; '.join(msgs)
             show_toast("⚠⚠⚠ 滴嘟滴嘟 ⚠⚠⚠", msg)

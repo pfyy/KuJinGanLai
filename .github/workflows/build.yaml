@@ -1,0 +1,22 @@
+on:
+  push:
+    branches:
+      - master
+
+
+jobs:
+  win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - run: pip install -r requirements.txt
+      - run: pip install pyinstaller
+      - run: pyinstaller --noconsole main.py
+      - run: move platform-tools/ dist/main/_internal/
+      - uses: actions/upload-artifact@v3
+        with:
+          name: windows
+          path: dist/main/

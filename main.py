@@ -284,27 +284,20 @@ do_check_thread.start()
 
 
 root = Tk()
-frm = ttk.Frame(root, padding=50)
+frm = ttk.Frame(root, padding=100)
 frm.grid()
 label_text = tkinter.StringVar(value="启动中...")
 label = ttk.Label(frm, textvariable=label_text).grid(column=0, row=0)
 
 
-def exit_func():
-    global running
-    running = False
-
-    global update_device_id_thread
-    update_device_id_thread.join()
-
-    global do_check_thread
-    do_check_thread.join()
-
-    global root
-    root.destroy()
-
-
-ttk.Button(frm, text="Quit", command=exit_func).grid(column=0, row=1)
+ttk.Button(frm, text="Quit", command=root.destroy).grid(column=0, row=1)
 
 
 root.mainloop()
+
+
+running = False
+
+update_device_id_thread.join()
+
+do_check_thread.join()

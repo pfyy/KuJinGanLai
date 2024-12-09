@@ -209,9 +209,7 @@ def do_check(target_device_id):
                 )
 
             if abi == "x86" and vss is not None:
-                status_text += f"{package_name} 剩余虚拟内存: {
-                    (MAX_X86_VSS - vss)/MI:.0f
-                } MiB\n"
+                status_text += f"{package_name} 剩余虚拟内存: {(MAX_X86_VSS - vss)/MI:.0f} MiB\n"
         if msgs:
             msg = '; '.join(msgs)
             show_toast("⚠⚠⚠ 滴嘟滴嘟 ⚠⚠⚠", msg)

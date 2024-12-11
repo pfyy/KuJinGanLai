@@ -12,6 +12,8 @@ from win10toast import ToastNotifier
 
 DEBUG = False
 
+EXTENDED_DEVICE_SCAN = False
+
 ADB = os.path.join(
     os.path.dirname(
         os.path.realpath(__file__)
@@ -89,21 +91,23 @@ def connect_to_emulator():
 
     device_ids.append("127.0.0.1:5555")
 
-    # MUMU extra
+    if EXTENDED_DEVICE_SCAN:
 
-    # https://mumu.163.com/help/20230214/35047_1073151.html
+        # MUMU extra
 
-    MAX_NUM_MUMU = 4
-    for i in range(1, MAX_NUM_MUMU):
-        device_ids.append(f"127.0.0.1:{16384+32*i}")
+        # https://mumu.163.com/help/20230214/35047_1073151.html
 
-    # LD extra
+        MAX_NUM_MUMU = 4
+        for i in range(1, MAX_NUM_MUMU):
+            device_ids.append(f"127.0.0.1:{16384+32*i}")
 
-    # https://help.ldmnq.com/docs/LD9adbserver
+        # LD extra
 
-    MAX_NUM_LD = 4
-    for i in range(1, MAX_NUM_LD):
-        device_ids.append(f"127.0.0.1:{5555+2*i}")
+        # https://help.ldmnq.com/docs/LD9adbserver
+
+        MAX_NUM_LD = 4
+        for i in range(1, MAX_NUM_LD):
+            device_ids.append(f"127.0.0.1:{5555+2*i}")
 
     # try connecting
 

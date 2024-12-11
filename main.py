@@ -4,6 +4,7 @@ import subprocess
 import time
 import threading
 import sys
+import json
 import tkinter
 from tkinter import Tk
 from tkinter import ttk
@@ -13,6 +14,7 @@ from win10toast import ToastNotifier
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+from playsound3 import playsound
 
 
 # for chinese user
@@ -58,11 +60,58 @@ TOAST = ToastNotifier()
 
 T_START = time.time()
 
+T_SOUND_PERIOD = 15
+
+
+SETTING_FILE_PATH = os.path.join(
+    SELF_DIR_PATH, "settings.json"
+)
+
+SOUND_FILE_PATH = os.path.join(
+    SELF_DIR_PATH, "proprietary_asset", "kujinganlai.mp3"
+)
+
+
+class Setting:
+    def __init__(self):
+        if os.path.isfile(SETTING_FILE_PATH):
+            with open(SETTING_FILE_PATH, encoding="utf-8") as f:
+                self.setting_obj = json.load(f)
+        else:
+            self.setting_obj = {
+                "use_audio": 0,
+            }
+
+    def get_key(self, k):
+        return self.setting_obj.get(k, None)
+
+    def set_key(self, k, v):
+        self.setting_obj[k] = v
+        with open(SETTING_FILE_PATH, "w", encoding="utf-8") as f:
+            json.dump(
+                self.setting_obj, f,
+                ensure_ascii=False, indent=4
+            )
+
+
+setting = Setting()
+
 # --- emulator functions ---
 
+last_playsound_time = 0
 
-def show_toast(title: str, msg: str):
+
+def do_warn(title: str, msg: str):
     TOAST.show_toast(title, msg, duration=10, threaded=True, icon_path='')
+    if setting.get_key("use_audio"):
+        global last_playsound_time
+
+        t_now = time.time()
+        if t_now > last_playsound_time+T_SOUND_PERIOD:
+            if DEBUG:
+                print("playsound called")
+            last_playsound_time = t_now
+            playsound(SOUND_FILE_PATH, block=False)
 
 
 def find_emulators():
@@ -304,7 +353,7 @@ def do_check(target_device_id):
                 )
         if msgs:
             msg = '; '.join(msgs)
-            show_toast("⚠⚠⚠ 滴嘟滴嘟 ⚠⚠⚠", msg)
+            do_warn("⚠⚠⚠ 滴嘟滴嘟 ⚠⚠⚠", msg)
     except Exception:
         pass
     return status_text_arr
@@ -486,6 +535,15 @@ label = ttk.Label(frm, textvariable=label_text, anchor=tkinter.CENTER).grid(
 
 canvas = FigureCanvasTkAgg(fig, master=frm)
 canvas.get_tk_widget().grid(column=0, row=1)
+
+check_button_val = tkinter.IntVar(value=setting.get_key("use_audio"))
+check_button = tkinter.Checkbutton(
+    frm,
+    text="开启苦尽甘来语音提醒",
+    variable=check_button_val,
+    command=lambda: setting.set_key("use_audio", check_button_val.get())
+)
+check_button.grid(column=0, row=2)
 
 
 for i in range(2):

@@ -11,6 +11,12 @@ from tkinter import ttk
 from win10toast import ToastNotifier
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+
+
+# for chinese user
+plt.rcParams["font.family"] = "SimSun"
+plt.rcParams["axes.unicode_minus"] = False
 
 DEBUG = False
 
@@ -42,6 +48,8 @@ X86_REM_VSS_THRESH = 300 * MI
 
 
 TOAST = ToastNotifier()
+
+T_START = time.time()
 
 # --- emulator functions ---
 
@@ -250,7 +258,9 @@ def do_check(target_device_id):
             )
 
         if emulator_mem is not None:
-            graph_orig_data_dict["emulator_mem"].add(t_now, emulator_mem)
+            graph_orig_data_dict["emulator_mem"].add(
+                t_now-T_START, emulator_mem/MI
+            )
 
         for package_name in PACKAGE_NAMES:
             abi = package_abi[package_name]
@@ -280,7 +290,9 @@ def do_check(target_device_id):
             if abi == "x86" and vss is not None:
                 graph_orig_data_dict[
                     f"x86_remaining_vss-{package_name}"
-                ].add(t_now, x86_remaining_vss)
+                ].add(
+                    t_now-T_START, x86_remaining_vss/MI
+                )
         if msgs:
             msg = '; '.join(msgs)
             show_toast("⚠⚠⚠ 滴嘟滴嘟 ⚠⚠⚠", msg)
@@ -377,9 +389,20 @@ def draw_graph_thread_func():
             ax.clear()
             ax2.clear()
 
+            ax.set_xlabel("时间 (s)")
+            ax.set_ylabel("内存大小 (MiB)")
+
             emulator_mem_x, emulator_mem_y = graph_orig_data_dict[
                 "emulator_mem"
             ].get_graph_data()
+
+            if emulator_mem_x:
+                ax.plot(
+                    emulator_mem_x, emulator_mem_y,
+                    color="black", label="模拟器剩余物理内存"
+                )
+
+                ax.set_ylim(bottom=0, top=1.2*max(emulator_mem_y))
 
             app_x86_remaining_vss = {}
 
@@ -388,11 +411,29 @@ def draw_graph_thread_func():
                     f"x86_remaining_vss-{package_name}"
                 ].get_graph_data()
 
-            ax.plot(emulator_mem_x, emulator_mem_y, color="black")
+            x86_remaining_vss_y_max = 0
 
             for package_name in PACKAGE_NAMES:
                 x86_remaining_vss_x, x86_remaining_vss_y = app_x86_remaining_vss[package_name]
-                ax2.plot(x86_remaining_vss_x, x86_remaining_vss_y)
+                if x86_remaining_vss_x:
+                    ax2.plot(
+                        x86_remaining_vss_x,
+                        x86_remaining_vss_y,
+                        label="明日方舟剩余虚拟内存"
+                    )
+                    x86_remaining_vss_y_max = max(
+                        x86_remaining_vss_y_max,
+                        max(x86_remaining_vss_y)
+                    )
+
+            ax2.set_ylim(bottom=0, top=1.2*x86_remaining_vss_y_max)
+
+            ax.legend(
+                loc="upper left"
+            )
+            ax2.legend(
+                loc="upper right"
+            )
 
             canvas.draw()
 

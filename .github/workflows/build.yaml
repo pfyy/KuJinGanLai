@@ -15,7 +15,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: pip install pyinstaller
       - run: pyinstaller main.py
-      - run: move platform-tools/ dist/main/
+      - run: move platform-tools/ settings.json proprietary_asset/ dist/main/
       - uses: actions/upload-artifact@v4
         with:
           name: windows

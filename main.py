@@ -373,7 +373,7 @@ do_check_thread = threading.Thread(target=do_check_thread_func)
 do_check_thread.start()
 
 ax = None
-
+canvas = None
 
 def draw_graph_thread_func():
     global running
@@ -435,7 +435,8 @@ def draw_graph_thread_func():
                 loc="upper right"
             )
 
-            canvas.draw_idle()
+            if canvas is not None:
+                canvas.draw_idle()
 
         time.sleep(0.5)
 
@@ -477,6 +478,8 @@ except KeyboardInterrupt:
     pass
 
 label_text = None
+
+canvas = None
 
 running = False
 

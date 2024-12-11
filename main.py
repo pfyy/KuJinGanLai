@@ -375,6 +375,7 @@ do_check_thread.start()
 ax = None
 canvas = None
 
+
 def draw_graph_thread_func():
     global running
 
@@ -451,7 +452,7 @@ root = Tk()
 root.rowconfigure(0, weight=1)
 root.columnconfigure(0, weight=1)
 
-frm = ttk.Frame(root, padding=100)
+frm = ttk.Frame(root, padding=10)
 frm.grid(sticky=tkinter.NSEW)
 
 label_text = tkinter.StringVar(value="启动中...")

@@ -101,17 +101,27 @@ setting = Setting()
 last_playsound_time = 0
 
 
-def do_warn(title: str, msg: str):
+def do_message_warn(title: str, msg: str):
+    if DEBUG:
+        print("do_message_warn called")
     TOAST.show_toast(title, msg, duration=10, threaded=True, icon_path='')
+
+
+def do_audio_warn():
+    if DEBUG:
+        print("do_audio_warn called")
+    playsound(SOUND_FILE_PATH, block=False)
+
+
+def do_warn(title: str, msg: str, ignore_sound_period: bool = False):
+    do_message_warn(title, msg)
     if setting.get_key("use_audio"):
         global last_playsound_time
 
         t_now = time.time()
-        if t_now > last_playsound_time+T_SOUND_PERIOD:
-            if DEBUG:
-                print("playsound called")
+        if ignore_sound_period or t_now > last_playsound_time+T_SOUND_PERIOD:
             last_playsound_time = t_now
-            playsound(SOUND_FILE_PATH, block=False)
+            do_audio_warn()
 
 
 def find_emulators():
@@ -545,8 +555,14 @@ check_button = tkinter.Checkbutton(
 )
 check_button.grid(column=0, row=2)
 
+test_button = tkinter.Button(
+    frm, text="测试提醒功能",
+    command=lambda: do_warn("测试标题", "测试内容", ignore_sound_period=True)
+)
+test_button.grid(column=0, row=3)
 
-for i in range(2):
+
+for i in range(4):
     frm.rowconfigure(i, weight=1)
 
 for i in range(1):

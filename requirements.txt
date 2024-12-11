@@ -1,1 +1,2 @@
 win10toast
+matplotlib

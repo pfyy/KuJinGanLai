@@ -9,6 +9,8 @@ from tkinter import ttk
 
 
 from win10toast import ToastNotifier
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 
 DEBUG = False
 
@@ -193,12 +195,47 @@ def get_emulator_mem(target_device_id):
     return emulator_mem
 
 
+class GraphOrigData:
+    LEN_GRAPH_DATA = 100
+
+    def __init__(self):
+        self.x_arr = []
+        self.y_arr = []
+        self.lock = threading.Lock()
+
+    def add(self, new_x, new_y):
+        with self.lock:
+            self.x_arr.append(new_x)
+            self.y_arr.append(new_y)
+
+    def get_graph_data(self):
+        with self.lock:
+            return (
+                self.x_arr[-self.LEN_GRAPH_DATA:],
+                self.y_arr[-self.LEN_GRAPH_DATA:]
+            )
+
+
+graph_orig_data_dict = {}
+
+graph_orig_data_dict["emulator_mem"] = GraphOrigData()
+
+for package_name in PACKAGE_NAMES:
+    graph_orig_data_dict[
+        f"x86_remaining_vss-{package_name}"
+    ] = GraphOrigData()
+
+
 def do_check(target_device_id):
+    global graph_orig_data_dict
+
     status_text_arr = []
     try:
         package_abi = get_package_abi(target_device_id)
         app_mem = get_app_mem(target_device_id)
         emulator_mem = get_emulator_mem(target_device_id)
+
+        t_now = time.time()
 
         msgs = []
 
@@ -211,6 +248,9 @@ def do_check(target_device_id):
             status_text_arr.append(
                 f"剩余物理内存: {emulator_mem/MI:.0f} MiB"
             )
+
+        if emulator_mem is not None:
+            graph_orig_data_dict["emulator_mem"].add(t_now, emulator_mem)
 
         for package_name in PACKAGE_NAMES:
             abi = package_abi[package_name]
@@ -236,6 +276,11 @@ def do_check(target_device_id):
                 status_text_arr.append(
                     f"{package_name} 剩余虚拟内存: {x86_remaining_vss/MI:.0f} MiB"
                 )
+
+            if abi == "x86" and vss is not None:
+                graph_orig_data_dict[
+                    f"x86_remaining_vss-{package_name}"
+                ].add(t_now, x86_remaining_vss)
         if msgs:
             msg = '; '.join(msgs)
             show_toast("⚠⚠⚠ 滴嘟滴嘟 ⚠⚠⚠", msg)
@@ -315,6 +360,48 @@ def do_check_thread_func():
 do_check_thread = threading.Thread(target=do_check_thread_func)
 do_check_thread.start()
 
+ax = None
+
+
+def draw_graph_thread_func():
+    global running
+
+    global graph_orig_data_dict
+
+    global ax
+    global ax2
+    global canvas
+
+    while running:
+        if ax is not None:
+            ax.clear()
+            ax2.clear()
+
+            emulator_mem_x, emulator_mem_y = graph_orig_data_dict[
+                "emulator_mem"
+            ].get_graph_data()
+
+            app_x86_remaining_vss = {}
+
+            for package_name in PACKAGE_NAMES:
+                app_x86_remaining_vss[package_name] = graph_orig_data_dict[
+                    f"x86_remaining_vss-{package_name}"
+                ].get_graph_data()
+
+            ax.plot(emulator_mem_x, emulator_mem_y, color="black")
+
+            for package_name in PACKAGE_NAMES:
+                x86_remaining_vss_x, x86_remaining_vss_y = app_x86_remaining_vss[package_name]
+                ax2.plot(x86_remaining_vss_x, x86_remaining_vss_y)
+
+            canvas.draw()
+
+        time.sleep(0.5)
+
+
+draw_graph_thread = threading.Thread(target=draw_graph_thread_func)
+draw_graph_thread.start()
+
 # --- tkinter ---
 
 
@@ -330,7 +417,14 @@ label = ttk.Label(frm, textvariable=label_text, anchor=tkinter.CENTER).grid(
     column=0, row=0, sticky=tkinter.NSEW)
 
 
-for i in range(1):
+fig = Figure()
+ax = fig.add_subplot()
+ax2 = ax.twinx()
+
+canvas = FigureCanvasTkAgg(fig, master=frm)
+canvas.get_tk_widget().grid(column=0, row=1)
+
+for i in range(3):
     frm.rowconfigure(i, weight=1)
 
 for i in range(1):
@@ -342,6 +436,8 @@ except KeyboardInterrupt:
     pass
 
 label_text = None
+
+ax = None
 
 running = False
 

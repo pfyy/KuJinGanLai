@@ -3,6 +3,7 @@ import os
 import subprocess
 import time
 import threading
+import sys
 import tkinter
 from tkinter import Tk
 from tkinter import ttk
@@ -22,10 +23,16 @@ DEBUG = False
 
 EXTENDED_DEVICE_SCAN = False
 
-ADB = os.path.join(
-    os.path.dirname(
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    SELF_DIR_PATH = sys._MEIPASS
+else:
+    SELF_DIR_PATH = os.path.dirname(
         os.path.realpath(__file__)
-    ), "platform-tools", "adb.exe"
+    )
+
+
+ADB = os.path.join(
+    SELF_DIR_PATH, "platform-tools", "adb.exe"
 )
 
 if not os.path.isfile(ADB):

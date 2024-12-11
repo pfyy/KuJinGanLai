@@ -254,7 +254,9 @@ def do_check(target_device_id):
 
         msgs = []
 
-        if emulator_mem is not None and (DEBUG or emulator_mem < EMU_MEM_THRESH):
+        if emulator_mem is not None and (
+            DEBUG or emulator_mem < EMU_MEM_THRESH
+        ):
             msgs.append(
                 f"模拟器当前剩余物理内存为 {emulator_mem/MI:.0f} MiB"
             )
@@ -340,13 +342,21 @@ def update_device_id_thread_func():
 update_device_id_thread = threading.Thread(target=update_device_id_thread_func)
 update_device_id_thread.start()
 
-label_text = None
+
+# --- threads with gui interaction ---
+
+
+# tkinter root, may be none when thread starts
+root = None
+
+status_text = ''
 
 
 def do_check_thread_func():
     global running
     global current_device_id
-    global label_text
+
+    global status_text
 
     cnt = 0
     while running:
@@ -367,8 +377,8 @@ def do_check_thread_func():
                 status_text = '\n'.join(status_text_arr)
             else:
                 status_text = "正在寻找运行中的模拟器..."
-            if label_text is not None:
-                label_text.set(status_text)
+            if root is not None:
+                root.event_generate("<<label_updated>>")
         cnt += 1
         # 1s
         if cnt >= 10:
@@ -379,8 +389,10 @@ def do_check_thread_func():
 do_check_thread = threading.Thread(target=do_check_thread_func)
 do_check_thread.start()
 
-ax = None
-canvas = None
+
+fig = Figure()
+ax = fig.add_subplot()
+ax2 = ax.twinx()
 
 
 def draw_graph_thread_func():
@@ -390,10 +402,10 @@ def draw_graph_thread_func():
 
     global ax
     global ax2
-    global canvas
+    global root
 
     while running:
-        if ax is not None:
+        if ax is not None and ax2 is not None:
             ax.clear()
             ax2.clear()
 
@@ -422,7 +434,12 @@ def draw_graph_thread_func():
             x86_remaining_vss_y_max = 0
 
             for package_name in PACKAGE_NAMES:
-                x86_remaining_vss_x, x86_remaining_vss_y = app_x86_remaining_vss[package_name]
+                (
+                    x86_remaining_vss_x,
+                    x86_remaining_vss_y
+                ) = app_x86_remaining_vss[
+                    package_name
+                ]
                 if x86_remaining_vss_x:
                     ax2.plot(
                         x86_remaining_vss_x,
@@ -443,8 +460,8 @@ def draw_graph_thread_func():
                 loc="upper right"
             )
 
-            if canvas is not None:
-                canvas.draw_idle()
+            if root is not None:
+                root.event_generate("<<canvas_updated>>")
 
         time.sleep(0.5)
 
@@ -467,27 +484,24 @@ label = ttk.Label(frm, textvariable=label_text, anchor=tkinter.CENTER).grid(
     column=0, row=0, sticky=tkinter.NSEW)
 
 
-fig = Figure()
-ax = fig.add_subplot()
-ax2 = ax.twinx()
-
 canvas = FigureCanvasTkAgg(fig, master=frm)
 canvas.get_tk_widget().grid(column=0, row=1)
 
-for i in range(3):
+
+for i in range(2):
     frm.rowconfigure(i, weight=1)
 
 for i in range(1):
     frm.columnconfigure(i, weight=1)
 
+
+root.bind("<<label_updated>>", lambda e: label_text.set(status_text))
+root.bind("<<canvas_updated>>", lambda e: canvas.draw_idle())
+
 try:
     root.mainloop()
 except KeyboardInterrupt:
     pass
-
-label_text = None
-
-canvas = None
 
 running = False
 

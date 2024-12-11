@@ -32,11 +32,15 @@
 
 ### 给一般用户的使用方法
 
-1. 在 [https://github.com/pfyy/KuJinGanLai/actions](https://github.com/pfyy/KuJinGanLai/actions) 页面下载最新的workflow产物 (文件名应为`windows.zip`)
+1. 开启模拟器的adb连接. 支持的模拟器: MUMU, LD
 
-2. 解压, 运行 `main.exe`.
+> 如果你用过MAA, 那你应该无需执行本操作
 
-3. 在游戏运行过程中, 保持本工具的开启.
+2. 在 [https://github.com/pfyy/KuJinGanLai/actions](https://github.com/pfyy/KuJinGanLai/actions) 页面下载最新的workflow产物 (文件名应为`windows.zip`)
+
+3. 解压, 运行 `main.exe`.
+
+4. 在游戏运行过程中, 保持本工具的开启.
 
 
 ![artifact](artifact.png)

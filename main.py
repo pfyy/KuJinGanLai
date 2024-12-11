@@ -24,7 +24,7 @@ DEBUG = False
 EXTENDED_DEVICE_SCAN = False
 
 if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-    SELF_DIR_PATH = sys._MEIPASS
+    SELF_DIR_PATH = os.path.dirname(sys.executable)
 else:
     SELF_DIR_PATH = os.path.dirname(
         os.path.realpath(__file__)

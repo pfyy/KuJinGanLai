@@ -30,6 +30,8 @@ PACKAGE_NAMES = [
 
 MI = 1024**2
 
+MAX_X86_VSS = 4096 * MI
+
 EMU_MEM_THRESH = 300 * MI
 
 X86_REM_VSS_THRESH = 300 * MI
@@ -188,7 +190,7 @@ def get_emulator_mem(target_device_id):
 
 
 def do_check(target_device_id):
-    status_text = ""
+    status_text_arr = []
     try:
         package_abi = get_package_abi(target_device_id)
         app_mem = get_app_mem(target_device_id)
@@ -202,19 +204,21 @@ def do_check(target_device_id):
             )
 
         if emulator_mem is not None:
-            status_text += f"剩余物理内存: {emulator_mem/MI:.0f} MiB\n"
+            status_text_arr.append(
+                f"剩余物理内存: {emulator_mem/MI:.0f} MiB"
+            )
 
         for package_name in PACKAGE_NAMES:
             abi = package_abi[package_name]
             vss = app_mem[package_name]
 
-            MAX_X86_VSS = 4096 * MI
-
             if vss is not None:
                 x86_remaining_vss = MAX_X86_VSS - vss
 
             if abi == "x86":
-                status_text += f"警告: {package_name}正在使用32位x86架构, 最大虚拟内存为4GiB\n"
+                status_text_arr.append(
+                    f"警告: {package_name}正在使用32位x86架构, 最大虚拟内存为4GiB"
+                )
 
             if (
                 abi == "x86" and vss is not None and
@@ -225,14 +229,15 @@ def do_check(target_device_id):
                 )
 
             if abi == "x86" and vss is not None:
-                status_text += f"{package_name} 剩余虚拟内存: {
-                    x86_remaining_vss/MI:.0f} MiB\n"
+                status_text_arr.append(
+                    f"{package_name} 剩余虚拟内存: {x86_remaining_vss/MI:.0f} MiB"
+                )
         if msgs:
             msg = '; '.join(msgs)
             show_toast("⚠⚠⚠ 滴嘟滴嘟 ⚠⚠⚠", msg)
     except Exception:
         pass
-    return status_text
+    return status_text_arr
 
 
 # --- threads ---
@@ -258,8 +263,8 @@ def update_device_id_thread_func():
             if current_device_id is None:
                 current_device_id = connect_to_emulator()
         cnt += 1
-        # 30s
-        if cnt >= 300:
+        # 3s
+        if cnt >= 30:
             cnt = 0
         time.sleep(0.1)
 
@@ -282,12 +287,23 @@ def do_check_thread_func():
                 print("do_check_thread_func called")
             if current_device_id is not None:
                 device_id = current_device_id
-                status_text = do_check(device_id)
-                if label_text is not None:
-                    label_text.set(status_text)
+                status_text_arr = do_check(device_id)
+                if not status_text_arr:
+                    status_text_arr = [f"模拟器{device_id}未给出有效响应"]
+                status_text_arr = [
+                    f"当前模拟器: {device_id}",
+                    "----------------------------------------"
+                ] + status_text_arr + [
+                    "----------------------------------------"
+                ]
+                status_text = '\n'.join(status_text_arr)
+            else:
+                status_text = "正在寻找运行中的模拟器..."
+            if label_text is not None:
+                label_text.set(status_text)
         cnt += 1
-        # 5s
-        if cnt >= 50:
+        # 1s
+        if cnt >= 10:
             cnt = 0
         time.sleep(0.1)
 

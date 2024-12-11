@@ -21,6 +21,8 @@
 
 ## 使用方法
 
+### 给程序员看的使用方法
+
 1. 开启模拟器的adb连接. 支持的模拟器: MUMU, LD
 
 2. `pip install -r requirements.txt`; 执行`main.py` (或者执行github action生成的二进制main.exe)
@@ -28,9 +30,25 @@
 3. 在游戏运行过程中, 保持本工具的开启. 本工具将自动周期获取模拟器的内存使用情况. 当内存不足时, 本工具使用windows的通知给出警告.
 
 
+### 给一般用户的使用方法
+
+1. 在 [https://github.com/pfyy/KuJinGanLai/actions](https://github.com/pfyy/KuJinGanLai/actions) 页面下载最新的workflow产物 (文件名应为`windows.zip`)
+
+2. 解压, 运行 `main.exe`.
+
+3. 在游戏运行过程中, 保持本工具的开启.
+
+
+![artifact](artifact.png)
+
+
 ## 截图
 
+mumu模拟器中游玩肉鸽时的截图, 肉眼可见的内存泄漏:
+
 ![mumu](mumu.png)
+
+ld模拟器, 我不常用, 所以只放了一个进入肉鸽界面后的内存占用图:
 
 ![ld](ld.png)
 

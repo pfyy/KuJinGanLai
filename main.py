@@ -204,7 +204,7 @@ def get_emulator_mem(target_device_id):
 
 
 class GraphOrigData:
-    LEN_GRAPH_DATA = 100
+    LEN_GRAPH_DATA = 10000
 
     def __init__(self):
         self.x_arr = []
@@ -435,7 +435,7 @@ def draw_graph_thread_func():
                 loc="upper right"
             )
 
-            canvas.draw()
+            canvas.draw_idle()
 
         time.sleep(0.5)
 
@@ -478,10 +478,10 @@ except KeyboardInterrupt:
 
 label_text = None
 
-ax = None
-
 running = False
 
 update_device_id_thread.join()
 
 do_check_thread.join()
+
+draw_graph_thread.join()

@@ -113,7 +113,13 @@ def do_audio_warn():
     playsound(SOUND_FILE_PATH, block=False)
 
 
+warn_disabled = False
+
+
 def do_warn(title: str, msg: str, ignore_sound_period: bool = False):
+    global warn_disabled
+    if warn_disabled:
+        return
     do_message_warn(title, msg)
     if setting.get_key("use_audio"):
         global last_playsound_time
@@ -562,7 +568,27 @@ test_button = tkinter.Button(
 test_button.grid(column=0, row=3)
 
 
-for i in range(4):
+mask_button_val = tkinter.IntVar(value=0)
+
+
+def mask_button_cmd():
+    global warn_disabled
+
+    global mask_button_val
+
+    warn_disabled = mask_button_val.get()
+
+
+mask_button = tkinter.Checkbutton(
+    frm,
+    text="屏蔽苦尽甘来警告",
+    variable=mask_button_val,
+    command=mask_button_cmd
+)
+mask_button.grid(column=0, row=4)
+
+
+for i in range(5):
     frm.rowconfigure(i, weight=1)
 
 for i in range(1):
